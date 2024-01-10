@@ -1,5 +1,6 @@
 package de.komoot.photon.searcher;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import de.komoot.photon.Constants;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -13,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class GeocodeJsonFormatterTest {
 
     @Test
-    public void testConvertToGeojson() {
+    public void testConvertToGeojson() throws JsonProcessingException {
         GeocodeJsonFormatter formatter = new GeocodeJsonFormatter(false, "en");
         List<PhotonResult> allResults = new ArrayList<>();
         allResults.add(createDummyResult("99999", "Park Foo", "leisure", "park"));
@@ -33,8 +34,7 @@ public class GeocodeJsonFormatterTest {
         }
     }
     
-    private PhotonResult createDummyResult(String postCode, String name, String osmKey,
-                    String osmValue) {
+    private PhotonResult createDummyResult(String postCode, String name, String osmKey, String osmValue) {
         return new MockPhotonResult()
                 .put(Constants.POSTCODE, postCode)
                 .putLocalized(Constants.NAME, "en", name)

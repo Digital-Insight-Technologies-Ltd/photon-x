@@ -247,12 +247,6 @@
         </plugins>
         <resources>
             <resource>
-                <directory>${project.build.directory}/es/</directory>
-            </resource>
-            <resource>
-                <directory>es/</directory>
-            </resource>
-            <resource>
                 <directory>src/main/resources/</directory>
             </resource>
         </resources>
