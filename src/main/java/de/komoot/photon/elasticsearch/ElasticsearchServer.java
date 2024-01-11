@@ -50,16 +50,6 @@ public class ElasticsearchServer {
         this.restClientBuilder = RestClient.builder(HttpHost.create(serverUrl));
     }
 
-    public ElasticsearchServer headers(Header[] headers) {
-        this.headers.addAll(List.of(headers));
-        return this;
-    }
-
-    public ElasticsearchServer jsonpMapper(JsonpMapper jsonpMapper) {
-        this.jsonpMapper = jsonpMapper;
-        return this;
-    }
-
     public ElasticsearchServer apiKey(String apiKey) {
         this.headers.add(new BasicHeader("Authorization", String.format("ApiKey %s", apiKey)));
         return this;
@@ -189,19 +179,6 @@ public class ElasticsearchServer {
         String langString = properties.get(FIELD_LANGUAGES).asText();
 
         return new DatabaseProperties().setLanguages(langString == null ? null : langString.split(","));
-    }
-
-
-    public ElasticsearchServer recreateIndex(ObjectNode settings, ObjectNode mappings, String[] languages) throws IOException {
-        return deleteIndex().createIndex(settings, languages).updateMappings(mappings);
-    }
-
-    public de.komoot.photon.Importer createImporter(String[] languages, String[] extraTags, boolean allExtraTags, boolean includeExtraNames) {
-        return new de.komoot.photon.elasticsearch.Importer(esClient, languages, extraTags, allExtraTags, includeExtraNames);
-    }
-
-    public de.komoot.photon.Updater createUpdater(String[] languages, String[] extraTags, boolean allExtraTags, boolean includeExtraNames) {
-        return new de.komoot.photon.elasticsearch.Updater(esClient, languages, extraTags, allExtraTags, includeExtraNames);
     }
 
     public SearchHandler createSearchHandler(String[] languages) {

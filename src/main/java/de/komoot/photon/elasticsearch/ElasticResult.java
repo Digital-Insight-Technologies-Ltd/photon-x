@@ -5,12 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.komoot.photon.Constants;
-import de.komoot.photon.PhotonDoc;
 import de.komoot.photon.searcher.PhotonResult;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 public class ElasticResult implements PhotonResult {

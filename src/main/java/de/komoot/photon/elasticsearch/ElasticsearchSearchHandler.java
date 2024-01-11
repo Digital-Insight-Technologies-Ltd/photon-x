@@ -29,8 +29,6 @@ public class ElasticsearchSearchHandler implements SearchHandler {
     private final String[] supportedLanguages;
     private boolean lastLenient = false;
 
-    private final ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true);
-
     public ElasticsearchSearchHandler(ElasticsearchClient client, String[] languages) {
         this.client = client;
         this.supportedLanguages = languages;

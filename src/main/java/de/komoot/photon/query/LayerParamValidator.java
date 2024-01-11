@@ -1,6 +1,6 @@
 package de.komoot.photon.query;
 
-import de.komoot.photon.nominatim.model.AddressType;
+import de.komoot.photon.AddressType;
 
 import java.util.HashSet;
 import java.util.List;

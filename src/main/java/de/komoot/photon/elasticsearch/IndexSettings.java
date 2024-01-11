@@ -26,11 +26,10 @@ public class IndexSettings {
      * time. Spaces in the synonym list are considered a syntax error.
      *
      * @param synonymFilePath File containing the synonyms.
-     * @param numShards The number of primary shards to create.
      *
      * @return Index settings as an ObjectNode
      */
-    public static ObjectNode buildSettings(String synonymFilePath, Integer numShards) throws IOException {
+    public static ObjectNode buildSettings(String synonymFilePath) throws IOException {
         ArrayNode synonyms = null;
         ArrayNode classSynonyms = null;
 
@@ -54,7 +53,6 @@ public class IndexSettings {
                     .putPOJO("char_filter", buildCharFilter())
                     .putPOJO("filter", buildFilter(synonyms, classSynonyms))
                 )
-                .put("number_of_shards", numShards)
                 .put("number_of_replicas", 1);
     }
 
