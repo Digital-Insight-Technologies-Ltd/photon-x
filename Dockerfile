@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/maven:3.9.6-amazoncorretto-8-debian-bookworm AS build-image
+FROM public.ecr.aws/docker/library/maven:3.9.6-amazoncorretto-21-debian-bookworm AS build-image
 
 WORKDIR /app
 COPY src ./src
