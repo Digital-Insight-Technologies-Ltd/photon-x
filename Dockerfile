@@ -1,4 +1,4 @@
-FROM maven AS build-image
+FROM public.ecr.aws/docker/library/maven:3.9.6-amazoncorretto-8-debian-bookworm AS build-image
 
 WORKDIR /app
 COPY src ./src
@@ -6,7 +6,7 @@ COPY pom.xml .
 
 RUN mvn package -Dmaven.test.skip=true
 
-FROM amazoncorretto:21-alpine-jdk AS runtime-image
+FROM public.ecr.aws/amazoncorretto/amazoncorretto:21-al2023-arm64 AS runtime-image
 
 COPY --from=build-image /app/target/photon-*.jar /app/photon.jar
 
