@@ -1,19 +1,16 @@
 package de.komoot.photon.searcher;
 
-import java.util.Map;
-
 /**
  * A single response object from the database.
  */
 public interface PhotonResult {
-    public double[] INVALID_COORDINATES = new double[]{0, 0};
+    double[] INVALID_COORDINATES = new double[]{0, 0};
 
     /**
      * Get the value for the given field.
-     *
      * Should throw an exception, when the field has multiple values.
      *
-     * @param key
+     * @param key - Key in the json
      * @return If the field exist, the string value of the field, else null.
      */
     Object get(String key);
@@ -25,4 +22,5 @@ public interface PhotonResult {
 
     double getScore();
 
+    String getId();
 }

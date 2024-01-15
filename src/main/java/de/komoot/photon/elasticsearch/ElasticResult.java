@@ -13,15 +13,18 @@ public class ElasticResult implements PhotonResult {
     private static final String[] NAME_PRECEDENCE = {"default", "housename", "int", "loc", "reg", "alt", "old"};
 
     private final ObjectNode result;
+    private final String id;
     private Double score = 0.0;
 
     ElasticResult(Hit<ObjectNode> result) {
         this.result = result.source();
         this.score = result.score();
+        this.id = result.id();
     }
 
-    ElasticResult(ObjectNode result) {
+    ElasticResult(ObjectNode result, String id) {
         this.result = result;
+        this.id = id;
     }
 
     @Override
@@ -86,5 +89,10 @@ public class ElasticResult implements PhotonResult {
     @Override
     public double getScore() {
         return score;
+    }
+
+    @Override
+    public String getId() {
+        return id;
     }
 }

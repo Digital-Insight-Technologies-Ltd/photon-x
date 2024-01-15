@@ -24,6 +24,6 @@ public class ElasticsearchLookupHandler implements LookupHandler {
         if (!response.found()) {
             return null;
         }
-        return new ElasticResult(response.source());
+        return new ElasticResult(response.source(), response.id());
     }
 }
