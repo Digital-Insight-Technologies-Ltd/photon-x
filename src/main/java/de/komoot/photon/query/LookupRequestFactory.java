@@ -9,7 +9,7 @@ import spark.Request;
  * A factory that creates a {@link LookupRequest} from a {@link Request web request}
  */
 public class LookupRequestFactory {
-    protected static HashSet<String> allowedQueryParams = new HashSet<>(Arrays.asList("lang", "placeId"));
+    protected static HashSet<String> allowedQueryParams = new HashSet<>(Arrays.asList("lang", "placeId", "cache_partition"));
     private final RequestLanguageResolver languageResolver;
 
     public LookupRequestFactory(List<String> supportedLanguages, String defaultLanguage) {

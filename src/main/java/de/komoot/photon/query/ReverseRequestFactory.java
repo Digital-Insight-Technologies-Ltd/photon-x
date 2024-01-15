@@ -20,7 +20,7 @@ public class ReverseRequestFactory {
     private final LayerParamValidator layerParamValidator;
 
     private static final HashSet<String> REQUEST_QUERY_PARAMS = new HashSet<>(Arrays.asList("lang", "lon", "lat", "radius",
-            "query_string_filter", "distance_sort", "limit", "layer", "osm_tag", "debug"));
+            "query_string_filter", "distance_sort", "limit", "layer", "osm_tag", "debug", "cache_partition"));
 
     public ReverseRequestFactory(List<String> supportedLanguages, String defaultLanguage) {
         this.languageResolver = new RequestLanguageResolver(supportedLanguages, defaultLanguage);
