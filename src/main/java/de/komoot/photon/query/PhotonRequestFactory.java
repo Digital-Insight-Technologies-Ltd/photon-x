@@ -18,7 +18,7 @@ public class PhotonRequestFactory {
     private final LayerParamValidator layerParamValidator;
 
     private static final HashSet<String> REQUEST_QUERY_PARAMS = new HashSet<>(Arrays.asList("lang", "q", "lon", "lat",
-            "limit", "osm_tag", "location_bias_scale", "bbox", "debug", "zoom", "layer"));
+            "limit", "osm_tag", "location_bias_scale", "bbox", "debug", "zoom", "layer", "cache_partition"));
 
     public PhotonRequestFactory(List<String> supportedLanguages, String defaultLanguage) {
         this.languageResolver = new RequestLanguageResolver(supportedLanguages, defaultLanguage);
