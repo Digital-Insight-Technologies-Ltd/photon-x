@@ -6,3 +6,5 @@ phases:
       - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $ECR_URL
       - docker build -t $ECR_URL/$IMAGE_NAME:$IMAGE_TAG .
       - docker push $ECR_URL/$IMAGE_NAME:$IMAGE_TAG
+      - DIGEST=$(docker inspect $ECR_URL/$IMAGE_NAME:$IMAGE_TAG -f '{{.RepoDigests}}' | perl -pe "s/^\[(.*)\]$/\1/")
+      - aws ssm put-parameter --name /photon/api-container-version --value $DIGEST --overwrite
