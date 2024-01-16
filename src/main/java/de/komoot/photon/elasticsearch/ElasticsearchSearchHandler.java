@@ -62,7 +62,7 @@ public class ElasticsearchSearchHandler implements SearchHandler {
     }
 
     public String dumpQuery(PhotonRequest photonRequest) {
-        return buildQuery(photonRequest, lastLenient).buildQuery().toString();
+        return buildQuery(photonRequest, lastLenient).buildQuery().toString().substring(7);
     }
 
    public PhotonQueryBuilder buildQuery(PhotonRequest photonRequest, boolean lenient) {

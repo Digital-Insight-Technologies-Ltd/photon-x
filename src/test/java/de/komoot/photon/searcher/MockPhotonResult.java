@@ -21,11 +21,6 @@ public class MockPhotonResult implements PhotonResult {
     }
 
     @Override
-    public Map<String, String> getMap(String key) {
-        return (Map<String, String>) data.getOrDefault(key, null);
-    }
-
-    @Override
     public double[] getCoordinates() {
         return coordinates;
     }
@@ -38,6 +33,11 @@ public class MockPhotonResult implements PhotonResult {
     @Override
     public double getScore() {
         return 99;
+    }
+
+    @Override
+    public String getId() {
+        return "1234";
     }
 
     public MockPhotonResult put(String key, Object value) {
