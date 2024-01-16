@@ -45,12 +45,12 @@ public class ElasticsearchSearchHandler implements SearchHandler {
 
         if (results.hits().hits().isEmpty()) {
             results = sendQuery(buildQuery(photonRequest, true).buildQuery(), extLimit);
-            log.info("No hits for first query - sending lenient request");
+            log.debug("No hits for first query - sending lenient request");
         }
 
         long queryFinishTime = System.currentTimeMillis();
 
-        log.info(String.format("Elasticsearch query took %s ms", (queryFinishTime - queryStartTime)));
+        log.debug(String.format("Elasticsearch query took %s ms", (queryFinishTime - queryStartTime)));
 
         List<PhotonResult> ret = new ArrayList<>();
 

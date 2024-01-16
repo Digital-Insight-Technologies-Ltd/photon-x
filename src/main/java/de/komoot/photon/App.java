@@ -22,7 +22,7 @@ public class App {
                 .apiKey(args.getApiKey())
                 .start();
 
-        log.info("Make sure that the ES cluster is ready, this might take some time.");
+        log.debug("Make sure that the ES cluster is ready, this might take some time.");
         esServer.waitForReady();
 
         // Working on an existing installation.
@@ -33,7 +33,7 @@ public class App {
             esServer.waitForReady();
         }
 
-        log.info("ES cluster is now ready.");
+        log.debug("ES cluster is now ready.");
 
         startApi(args, esServer);
     }

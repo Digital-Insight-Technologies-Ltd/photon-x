@@ -63,7 +63,7 @@ public class SearchRequestHandler extends RouteImpl {
 
         long requestFinishTime = System.currentTimeMillis();
 
-        log.info(String.format("Request took %s ms", (requestFinishTime - requestStartTime)));
+        log.debug(String.format("Request took %s ms", (requestFinishTime - requestStartTime)));
 
         return output;
     }
