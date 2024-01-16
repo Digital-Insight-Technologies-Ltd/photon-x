@@ -12,7 +12,7 @@ import java.util.List;
  * Format a database result into a Photon GeocodeJson response.
  */
 public class GeocodeJsonFormatter implements ResultFormatter {
-    private static final String[] KEYS_LANG_UNSPEC = {Constants.RANK_ADDRESS, Constants.PARENT_PLACE_ID, Constants.OSM_TYPE, Constants.OSM_ID, Constants.OSM_KEY, Constants.OSM_VALUE, Constants.OBJECT_TYPE, Constants.POSTCODE, Constants.HOUSENUMBER, Constants.COUNTRYCODE};
+    private static final String[] KEYS_LANG_UNSPEC = {Constants.RANK_ADDRESS, Constants.OSM_TYPE, Constants.OSM_ID, Constants.OSM_KEY, Constants.OSM_VALUE, Constants.OBJECT_TYPE, Constants.POSTCODE, Constants.HOUSENUMBER, Constants.COUNTRYCODE};
     private static final String[] KEYS_LANG_SPEC = {Constants.NAME, Constants.COUNTRY, Constants.CITY, Constants.DISTRICT, Constants.LOCALITY, Constants.STREET, Constants.STATE, Constants.COUNTY};
     private final boolean addDebugInfo;
     private final String language;
@@ -66,6 +66,7 @@ public class GeocodeJsonFormatter implements ResultFormatter {
         }
 
         props.put(Constants.PLACE_ID, result.getId());
+        props.put(Constants.PARENT_PLACE_ID, result.get(Constants.PARENT_PLACE_ID).toString());
 
         for (String key : KEYS_LANG_UNSPEC) {
             props.putPOJO(key, result.get(key));
