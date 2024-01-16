@@ -4,6 +4,7 @@ import de.komoot.photon.query.BadRequestException;
 import de.komoot.photon.query.PhotonRequest;
 import de.komoot.photon.query.PhotonRequestFactory;
 import de.komoot.photon.searcher.*;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import spark.Request;
 import spark.Response;
@@ -18,6 +19,7 @@ import static spark.Spark.halt;
 /**
  * Created by Sachin Dole on 2/12/2015.
  */
+@Slf4j
 public class SearchRequestHandler extends RouteImpl {
     private final PhotonRequestFactory photonRequestFactory;
     private final SearchHandler requestHandler;
@@ -40,6 +42,8 @@ public class SearchRequestHandler extends RouteImpl {
             halt(e.getHttpStatus(), json.toString());
         }
 
+        long requestStartTime = System.currentTimeMillis();
+
         List<PhotonResult> results = requestHandler.search(photonRequest);
 
         // Further filtering
@@ -55,6 +59,12 @@ public class SearchRequestHandler extends RouteImpl {
             debugInfo = requestHandler.dumpQuery(photonRequest);
         }
 
-        return new GeocodeJsonFormatter(photonRequest.getDebug(), photonRequest.getLanguage()).convert(results, debugInfo);
+        String output = new GeocodeJsonFormatter(photonRequest.getDebug(), photonRequest.getLanguage()).convert(results, debugInfo);
+
+        long requestFinishTime = System.currentTimeMillis();
+
+        log.debug(String.format("Request took %s ms", (requestFinishTime - requestStartTime)));
+
+        return output;
     }
 }
