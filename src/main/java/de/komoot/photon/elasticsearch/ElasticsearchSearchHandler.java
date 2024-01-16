@@ -6,8 +6,6 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.komoot.photon.query.PhotonRequest;
 import de.komoot.photon.searcher.PhotonResult;
@@ -17,7 +15,6 @@ import lombok.extern.slf4j.Slf4j; // for debugging
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -48,12 +45,12 @@ public class ElasticsearchSearchHandler implements SearchHandler {
 
         if (results.hits().hits().isEmpty()) {
             results = sendQuery(buildQuery(photonRequest, true).buildQuery(), extLimit);
-            log.debug("No hits for first query - sending lenient request");
+            log.info("No hits for first query - sending lenient request");
         }
 
         long queryFinishTime = System.currentTimeMillis();
 
-        log.debug(String.format("Elasticsearch query took %s ms", (queryFinishTime - queryStartTime)));
+        log.info(String.format("Elasticsearch query took %s ms", (queryFinishTime - queryStartTime)));
 
         List<PhotonResult> ret = new ArrayList<>();
 

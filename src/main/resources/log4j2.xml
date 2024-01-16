@@ -9,7 +9,6 @@
     	</Async>   
 	</Appenders>
 	<Loggers>
-		<Logger name="de.komoot.photon" level="debug"/>
 	    <Logger name="de.komoot.photon" level="info"/>
 		<Root level="warn">
 			<AppenderRef ref="ASYNC" />
