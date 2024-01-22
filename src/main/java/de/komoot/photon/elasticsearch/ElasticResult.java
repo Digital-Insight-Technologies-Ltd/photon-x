@@ -6,7 +6,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.komoot.photon.Constants;
 import de.komoot.photon.searcher.PhotonResult;
-import org.tinylog.Logger;
+import de.komoot.photon.logging.PhotonLogger;
+
 
 public class ElasticResult implements PhotonResult {
     private static final String[] NAME_PRECEDENCE = {"default", "housename", "int", "loc", "reg", "alt", "old"};
@@ -61,9 +62,13 @@ public class ElasticResult implements PhotonResult {
     public double[] getCoordinates() {
         final ObjectNode coordinate = (ObjectNode) result.get("coordinate");
         if (coordinate == null) {
-            Logger.error(String.format("invalid data [id=%s, type=%s], coordinate is missing!",
-                    result.get(Constants.OSM_ID),
-                    result.get(Constants.OSM_VALUE)));
+            PhotonLogger.logger.error(
+                    String.format(
+                        "invalid data [id=%s, type=%s], coordinate is missing!",
+                        result.get(Constants.OSM_ID),
+                        result.get(Constants.OSM_VALUE)
+                    )
+            );
             return INVALID_COORDINATES;
         }
 

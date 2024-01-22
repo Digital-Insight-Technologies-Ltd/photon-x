@@ -11,7 +11,7 @@ import de.komoot.photon.Constants;
 import de.komoot.photon.query.PhotonRequest;
 import de.komoot.photon.searcher.PhotonResult;
 import de.komoot.photon.searcher.SearchHandler;
-import org.tinylog.Logger;
+import de.komoot.photon.logging.PhotonLogger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,12 +44,12 @@ public class ElasticsearchSearchHandler implements SearchHandler {
 
         if (results.hits().hits().isEmpty()) {
             results = sendQuery(buildQuery(photonRequest, true).buildQuery(), extLimit);
-            Logger.debug("No hits for first query - sending lenient request");
+            PhotonLogger.logger.debug("No hits for first query - sending lenient request");
         }
 
         long queryFinishTime = System.currentTimeMillis();
 
-        Logger.debug(String.format("Elasticsearch query took %s ms", (queryFinishTime - queryStartTime)));
+        PhotonLogger.logger.debug(String.format("Elasticsearch query took %s ms", (queryFinishTime - queryStartTime)));
 
         List<PhotonResult> ret = new ArrayList<>();
 

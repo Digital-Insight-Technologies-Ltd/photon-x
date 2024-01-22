@@ -12,4 +12,4 @@ COPY --from=build-image /app/target/photon-*.jar /app/photon.jar
 
 EXPOSE 2322
 
-ENTRYPOINT ["java", "-jar", "/app/photon.jar"]
+ENTRYPOINT ["java", "-XX:+EnableDynamicAgentLoading", "-jar", "/app/photon.jar"]

@@ -3,15 +3,18 @@ package de.komoot.photon;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import de.komoot.photon.elasticsearch.ElasticsearchServer;
-import org.tinylog.Logger;
+import de.komoot.photon.logging.PhotonLogger;
+
+import co.elastic.apm.attach.ElasticApmAttacher;
 
 import static spark.Spark.*;
 
 public class App {
     public static void main(String[] rawArgs) throws Exception {
-        CommandLineArgs args = parseCommandLine(rawArgs);
+        ElasticApmAttacher.attach();
 
-        final ElasticsearchServer esServer = new ElasticsearchServer(args.getServerUrl())
+        CommandLineArgs args = parseCommandLine(rawArgs);
+        ElasticsearchServer esServer = new ElasticsearchServer(args.getServerUrl())
                 .apiKey(args.getApiKey())
                 .start()
                 .waitForReady();
@@ -30,7 +33,7 @@ public class App {
             if (args.getApiKey() == null) { throw new ParameterException("apiKey is a required parameter"); }
 
         } catch (ParameterException e) {
-            Logger.error("could not start photon: " + e.getMessage());
+            PhotonLogger.logger.error("could not start photon: " + e.getMessage());
             jCommander.usage();
             System.exit(1);
         }
@@ -56,10 +59,10 @@ public class App {
         // setup search API
         String[] languages = new String[]{"en", "de", "fr", "it"};
         get("api", new SearchRequestHandler("api", server.createSearchHandler(languages), languages, args.getDefaultLanguage()));
-        get("api/", new SearchRequestHandler("api/", server.createSearchHandler(languages), languages, args.getDefaultLanguage()));
+        // get("api/", new SearchRequestHandler("api/", server.createSearchHandler(languages), languages, args.getDefaultLanguage()));
         get("reverse", new ReverseSearchRequestHandler("reverse", server.createReverseHandler(), languages, args.getDefaultLanguage()));
-        get("reverse/", new ReverseSearchRequestHandler("reverse/", server.createReverseHandler(), languages, args.getDefaultLanguage()));
+        // get("reverse/", new ReverseSearchRequestHandler("reverse/", server.createReverseHandler(), languages, args.getDefaultLanguage()));
         get("lookup", new LookupSearchRequestHandler("lookup", server.createLookupHandler(), languages, args.getDefaultLanguage()));
-        get("lookup/", new LookupSearchRequestHandler("lookup/", server.createLookupHandler(), languages, args.getDefaultLanguage()));
+        // get("lookup/", new LookupSearchRequestHandler("lookup/", server.createLookupHandler(), languages, args.getDefaultLanguage()));
     }
 }

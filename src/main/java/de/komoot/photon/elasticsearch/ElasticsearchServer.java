@@ -10,6 +10,7 @@ import co.elastic.clients.transport.rest_client.RestClientTransport;
 import de.komoot.photon.searcher.LookupHandler;
 import de.komoot.photon.searcher.ReverseHandler;
 import de.komoot.photon.searcher.SearchHandler;
+import de.komoot.photon.logging.PhotonLogger;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -17,8 +18,6 @@ import org.apache.http.message.BasicHeader;
 
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
-
-import org.tinylog.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,7 +47,7 @@ public class ElasticsearchServer {
 
         esClient = new ElasticsearchClient(transport);
 
-        Logger.info("Started elastic search client connected to " + serverUrl);
+        PhotonLogger.logger.info("Started elastic search client connected to " + serverUrl);
 
         return this;
     }

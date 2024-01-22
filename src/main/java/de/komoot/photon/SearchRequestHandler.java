@@ -1,5 +1,6 @@
 package de.komoot.photon;
 
+import de.komoot.photon.logging.PhotonLogger;
 import de.komoot.photon.query.BadRequestException;
 import de.komoot.photon.query.PhotonRequest;
 import de.komoot.photon.query.PhotonRequestFactory;
@@ -9,7 +10,6 @@ import de.komoot.photon.searcher.SearchHandler;
 import de.komoot.photon.searcher.StreetDupesRemover;
 
 import org.json.JSONObject;
-import org.tinylog.Logger;
 import spark.Request;
 import spark.Response;
 import spark.RouteImpl;
@@ -66,7 +66,7 @@ public class SearchRequestHandler extends RouteImpl {
 
         long requestFinishTime = System.currentTimeMillis();
 
-        Logger.debug(String.format("Request took %s ms", (requestFinishTime - requestStartTime)));
+        PhotonLogger.logger.debug(String.format("Request took %s ms", (requestFinishTime - requestStartTime)));
 
         return output;
     }
