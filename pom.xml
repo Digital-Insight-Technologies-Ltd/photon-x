@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+        xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.komoot.photon</groupId>
@@ -11,9 +14,13 @@
         <dependency>
             <groupId>co.elastic.clients</groupId>
             <artifactId>elasticsearch-java</artifactId>
-            <version>8.11.1</version>
+            <version>8.12.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>8.12.0</version>
+        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -21,64 +28,20 @@
         </dependency>
 
         <dependency>
-            <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch</artifactId>
-            <version>8.11.1</version>
+            <groupId>org.tinylog</groupId>
+            <artifactId>tinylog-api</artifactId>
+            <version>2.6.2</version>
         </dependency>
-
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.6.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <version>${log4j.version}</version>
+            <groupId>org.tinylog</groupId>
+            <artifactId>tinylog-impl</artifactId>
+            <version>2.6.2</version>
         </dependency>
 
         <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
             <version>1.82</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.30</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-jdbc</artifactId>
-            <version>5.3.29</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-dbcp2</artifactId>
-            <version>2.9.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -91,25 +54,6 @@
             <groupId>com.sparkjava</groupId>
             <artifactId>spark-core</artifactId>
             <version>2.9.4</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.postgis</groupId>
-            <artifactId>postgis-jdbc</artifactId>
-            <version>2.5.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.postgis</groupId>
-            <artifactId>postgis-jdbc-jtsparser</artifactId>
-            <version>2.2.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>2.2.220</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -131,138 +75,30 @@
             <artifactId>json</artifactId>
             <version>20231013</version>
         </dependency>
-    </dependencies>
 
-    <repositories>
-        <repository>
-            <id>datanucleus</id>
-            <name>datanucleus</name>
-            <url>https://www.datanucleus.org/downloads/maven2/</url>
-        </repository>
-    </repositories>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.0</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.logging.log4j</groupId>
-                        <artifactId>log4j-transform-maven-shade-plugin-extensions</artifactId>
-                        <version>0.1.0</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <createDependencyReducedPom>true</createDependencyReducedPom>
-                    <filters>
-                        <filter>
-                            <artifact>*:*</artifact>
-                            <excludes>
-                                <exclude>module-info.class</exclude>
-                                <exclude>META-INF/versions/*/module-info.class</exclude>
-                                <exclude>META-INF/*.SF</exclude>
-                                <exclude>META-INF/*.DSA</exclude>
-                                <exclude>META-INF/*.RSA</exclude>
-                                <!--
-                                    This mitigates against the log4j JNDI lookup vulnerability: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228
-
-                                    Since we are using an old version of elastic search that is incompatible with a patched, newer version of log4j we
-                                    have to remove the class JndiLookup from the fat jar. This is the recommended course of action when you cannot upgrade
-                                    as per https://logging.apache.org/log4j/2.x/security.html
-                                -->
-                                <exclude>org/apache/logging/log4j/core/lookup/JndiLookup.class</exclude>
-                            </excludes>
-                        </filter>
-                    </filters>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer
-                                    implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                                <transformer
-                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>de.komoot.photon.App</mainClass>
-                                    <manifestEntries>
-                                        <Multi-Release>true</Multi-Release>
-                                    </manifestEntries>
-                                </transformer>
-                                <transformer
-                                    implementation="org.apache.logging.log4j.maven.plugins.shade.transformer.Log4j2PluginCacheFileTransformer" />
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.3.0</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
                 <configuration>
-                    <encoding>UTF-8</encoding>
-                    <source>16</source>
-                    <target>16</target>
+                    <source>21</source>
+                    <target>21</target>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.8</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <!-- attached to Maven test phase -->
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.22.2</version>
             </plugin>
         </plugins>
-        <resources>
-            <resource>
-                <directory>src/main/resources/</directory>
-            </resource>
-        </resources>
     </build>
+
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-
-        <elasticsearch.version>8.11.1</elasticsearch.version>
-        <slf4j.version>1.7.36</slf4j.version>
-        <log4j.version>2.19.0</log4j.version>
-
-        <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
-
 </project>

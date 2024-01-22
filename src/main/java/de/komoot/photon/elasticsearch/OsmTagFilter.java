@@ -31,20 +31,19 @@ public class OsmTagFilter {
         return null;
     }
 
-    private OsmTagFilter addOsmTagFilter(TagFilter filter) {
-        if (filter.getKind() == TagFilterKind.EXCLUDE_VALUE) {
+    private void addOsmTagFilter(TagFilter filter) {
+        if (filter.kind() == TagFilterKind.EXCLUDE_VALUE) {
             appendIncludeTermQuery(new BoolQuery.Builder()
                     .must(q -> q
                             .term(t -> t
                                     .field("osm_key")
-                                    .value(filter.getKey()
-                                    )
+                                    .value(filter.key())
                             )
                     )
                     .mustNot(q -> q
                             .term(t -> t
                                     .field("osm_value")
-                                    .value(filter.getValue())
+                                    .value(filter.value())
                             )
                     )
                     .build()
@@ -56,13 +55,13 @@ public class OsmTagFilter {
                 builder = new Query.Builder()
                         .term(t -> t
                             .field("osm_key")
-                            .value(filter.getKey())
+                            .value(filter.key())
                         );
             } else if (filter.isValueOnly()) {
                 builder = new Query.Builder()
                         .term(t -> t
                             .field("osm_value")
-                            .value(filter.getValue())
+                            .value(filter.value())
                         );
             } else {
                 builder = new Query.Builder()
@@ -70,37 +69,38 @@ public class OsmTagFilter {
                             .must(q -> q
                                     .term(t -> t
                                             .field("osm_key")
-                                            .value(filter.getKey())
+                                            .value(filter.key())
                                     )
                             )
                             .must(q -> q
                                     .term(t -> t
                                             .field("osm_value")
-                                            .value(filter.getValue())
+                                            .value(filter.value())
                                     )
                             )
                         );
             }
-            if (filter.getKind() == TagFilterKind.INCLUDE) {
+            if (filter.kind() == TagFilterKind.INCLUDE) {
                 appendIncludeTermQuery(builder.build());
             } else {
                 appendExcludeTermQuery(builder.build());
             }
         }
-        return this;
     }
 
     private void appendIncludeTermQuery(Query termQuery) {
-        if (orQueryBuilderForIncludeTagFiltering == null)
+        if (orQueryBuilderForIncludeTagFiltering == null) {
             orQueryBuilderForIncludeTagFiltering = new BoolQuery.Builder();
+        }
 
         orQueryBuilderForIncludeTagFiltering.should(termQuery);
     }
 
 
     private void appendExcludeTermQuery(Query termQuery) {
-        if (andQueryBuilderForExcludeTagFiltering == null)
+        if (andQueryBuilderForExcludeTagFiltering == null) {
             andQueryBuilderForExcludeTagFiltering = new BoolQuery.Builder();
+            }
 
         andQueryBuilderForExcludeTagFiltering.should(termQuery);
     }

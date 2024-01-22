@@ -4,7 +4,7 @@ WORKDIR /app
 COPY src ./src
 COPY pom.xml .
 
-RUN mvn package -Dmaven.test.skip=true
+RUN mvn package
 
 FROM public.ecr.aws/amazoncorretto/amazoncorretto:21-al2023-arm64 AS runtime-image
 

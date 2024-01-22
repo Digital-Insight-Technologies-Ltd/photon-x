@@ -6,12 +6,10 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.komoot.photon.Constants;
 import de.komoot.photon.searcher.PhotonResult;
-import lombok.extern.slf4j.Slf4j;
+import org.tinylog.Logger;
 
-@Slf4j
 public class ElasticResult implements PhotonResult {
     private static final String[] NAME_PRECEDENCE = {"default", "housename", "int", "loc", "reg", "alt", "old"};
-
     private final ObjectNode result;
     private final String id;
     private Double score = 0.0;
@@ -63,13 +61,13 @@ public class ElasticResult implements PhotonResult {
     public double[] getCoordinates() {
         final ObjectNode coordinate = (ObjectNode) result.get("coordinate");
         if (coordinate == null) {
-            log.error(String.format("invalid data [id=%s, type=%s], coordinate is missing!",
+            Logger.error(String.format("invalid data [id=%s, type=%s], coordinate is missing!",
                     result.get(Constants.OSM_ID),
                     result.get(Constants.OSM_VALUE)));
             return INVALID_COORDINATES;
         }
 
-        return new double[]{coordinate.get(Constants.LON).asDouble(), coordinate.get(Constants.LAT).asDouble()};
+        return new double[]{ coordinate.get(Constants.LON).asDouble(), coordinate.get(Constants.LAT).asDouble() };
     }
 
     @Override

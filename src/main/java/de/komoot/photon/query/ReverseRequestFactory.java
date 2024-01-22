@@ -37,11 +37,11 @@ public class ReverseRequestFactory {
 
         Point location = mandatoryLocationParamConverter.apply(webRequest);
 
-        Double radius = 1d;
+        double radius = 1d;
         String radiusParam = webRequest.queryParams("radius");
         if (radiusParam != null) {
             try {
-                radius = Double.valueOf(radiusParam);
+                radius = Double.parseDouble(radiusParam);
             } catch (Exception nfe) {
                 throw new BadRequestException(400, "invalid search term 'radius', expected a number.");
             }
@@ -53,18 +53,18 @@ public class ReverseRequestFactory {
             }
         }
 
-        Boolean locationDistanceSort;
+        boolean locationDistanceSort;
         try {
-            locationDistanceSort = Boolean.valueOf(webRequest.queryParamOrDefault("distance_sort", "true"));
+            locationDistanceSort = Boolean.parseBoolean(webRequest.queryParamOrDefault("distance_sort", "true"));
         } catch (Exception nfe) {
             throw new BadRequestException(400, "invalid parameter 'distance_sort', can only be true or false");
         }
 
-        Integer limit = 1;
+        int limit = 1;
         String limitParam = webRequest.queryParams("limit");
         if (limitParam != null) {
             try {
-                limit = Integer.valueOf(limitParam);
+                limit = Integer.parseInt(limitParam);
             } catch (Exception nfe) {
                 throw new BadRequestException(400, "invalid search term 'limit', expected an integer.");
             }
@@ -85,7 +85,7 @@ public class ReverseRequestFactory {
         }
 
         String queryStringFilter = webRequest.queryParams("query_string_filter");
-        ReverseRequest request = new ReverseRequest(location, language, radius, queryStringFilter, limit, locationDistanceSort, layerFilter, enableDebug);
+        ReverseRequest request = new ReverseRequest(location, language, radius, limit, queryStringFilter, locationDistanceSort, layerFilter, enableDebug);
 
         QueryParamsMap tagFiltersQueryMap = webRequest.queryMap("osm_tag");
         if (tagFiltersQueryMap.hasValue()) {

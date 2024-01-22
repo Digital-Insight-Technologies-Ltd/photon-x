@@ -4,13 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import lombok.extern.slf4j.Slf4j;
-
-
 /**
- * Encapsulates the ES index mapping for the photon index.
+ * Builds the Elasticsearch index mapping as JSON
  */
-@Slf4j
 public class IndexMapping {
     private static final ObjectMapper objMapper = new ObjectMapper();
 

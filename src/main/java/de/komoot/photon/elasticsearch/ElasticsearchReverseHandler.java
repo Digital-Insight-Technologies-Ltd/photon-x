@@ -10,6 +10,7 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.vividsolutions.jts.geom.Point;
+import de.komoot.photon.Constants;
 import de.komoot.photon.query.ReverseRequest;
 import de.komoot.photon.searcher.PhotonResult;
 import de.komoot.photon.searcher.ReverseHandler;
@@ -54,7 +55,7 @@ public class ElasticsearchReverseHandler implements ReverseHandler {
 
     private SearchResponse<ObjectNode> search(Query query, Integer limit, Point location, Boolean locationDistanceSort) throws IOException {
         SearchRequest.Builder builder = new SearchRequest.Builder()
-            .index(PhotonIndex.NAME)
+            .index(Constants.PHOTON_INDEX)
             .searchType(SearchType.QueryThenFetch)
             .query(query)
             .size(limit)

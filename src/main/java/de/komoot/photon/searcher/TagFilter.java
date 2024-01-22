@@ -2,28 +2,7 @@ package de.komoot.photon.searcher;
 
 import java.util.Objects;
 
-public class TagFilter {
-    private final TagFilterKind kind;
-    private final String key;
-    private final String value;
-
-    public TagFilter(TagFilterKind kind, String key, String value) {
-        this.kind = kind;
-        this.key = key;
-        this.value = value;
-    }
-
-    public TagFilterKind getKind() {
-        return kind;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public String getValue() {
-        return value;
-    }
+public record TagFilter(TagFilterKind kind, String key, String value) {
 
     public boolean isKeyOnly() {
         return value == null;
@@ -34,10 +13,9 @@ public class TagFilter {
     }
 
     /**
-     * Create a new tag filter from a osm-tag filter description.
+     * Create a new tag filter from an osm-tag filter description.
      *
-     * @param filter  Tag filter description.
-     *
+     * @param filter Tag filter description.
      * @return The appropriate tag filter object or null if the filter string has an invalid format.
      */
     public static TagFilter buildOsmTagFilter(String filter) {
@@ -92,10 +70,5 @@ public class TagFilter {
         if (o == null || getClass() != o.getClass()) return false;
         TagFilter tagFilter = (TagFilter) o;
         return kind == tagFilter.kind && Objects.equals(key, tagFilter.key) && Objects.equals(value, tagFilter.value);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(kind, key, value);
     }
 }

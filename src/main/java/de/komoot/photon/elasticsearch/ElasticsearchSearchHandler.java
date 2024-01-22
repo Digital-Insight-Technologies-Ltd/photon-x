@@ -7,11 +7,11 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import de.komoot.photon.Constants;
 import de.komoot.photon.query.PhotonRequest;
 import de.komoot.photon.searcher.PhotonResult;
 import de.komoot.photon.searcher.SearchHandler;
-
-import lombok.extern.slf4j.Slf4j; // for debugging
+import org.tinylog.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,7 +20,6 @@ import java.util.List;
 /**
  * Created by Sachin Dole on 2/12/2015.
  */
-@Slf4j
 public class ElasticsearchSearchHandler implements SearchHandler {
     private final ElasticsearchClient client;
     private final String[] supportedLanguages;
@@ -45,12 +44,12 @@ public class ElasticsearchSearchHandler implements SearchHandler {
 
         if (results.hits().hits().isEmpty()) {
             results = sendQuery(buildQuery(photonRequest, true).buildQuery(), extLimit);
-            log.debug("No hits for first query - sending lenient request");
+            Logger.debug("No hits for first query - sending lenient request");
         }
 
         long queryFinishTime = System.currentTimeMillis();
 
-        log.debug(String.format("Elasticsearch query took %s ms", (queryFinishTime - queryStartTime)));
+        Logger.debug(String.format("Elasticsearch query took %s ms", (queryFinishTime - queryStartTime)));
 
         List<PhotonResult> ret = new ArrayList<>();
 
@@ -86,7 +85,7 @@ public class ElasticsearchSearchHandler implements SearchHandler {
 
     private SearchResponse<ObjectNode> sendQuery(Query query, Integer limit) throws IOException {
         SearchRequest.Builder builder = new SearchRequest.Builder()
-                .index(PhotonIndex.NAME)
+                .index(Constants.PHOTON_INDEX)
                 .searchType(SearchType.QueryThenFetch)
                 .query(query)
                 .size(limit)

@@ -41,8 +41,8 @@ public class LookupSearchRequestHandler extends RouteImpl {
         }
 
         List<PhotonResult> results = new ArrayList<>();
-        results.add(requestHandler.lookup(lookupRequest.getPlaceId()));
+        results.add(requestHandler.lookup(lookupRequest.placeId()));
 
-        return new GeocodeJsonFormatter(false, lookupRequest.getLanguage()).convert(results, null);
+        return new GeocodeJsonFormatter(false, lookupRequest.language()).convert(results, null);
     }
 }

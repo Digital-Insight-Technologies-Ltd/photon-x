@@ -1,6 +1,5 @@
 package de.komoot.photon.elasticsearch;
 
-
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
@@ -18,8 +17,9 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Point;
 import de.komoot.photon.searcher.TagFilter;
 
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * There are four {@link PhotonQueryBuilder.State states} that this query builder goes through before a query can be executed on elastic search. Of
@@ -39,11 +39,11 @@ public class PhotonQueryBuilder {
 
     private FunctionScoreQuery.Builder finalQueryWithoutTagFilterBuilder;
 
-    private BoolQuery.Builder queryBuilderForTopLevelFilter;
+    private final BoolQuery.Builder queryBuilderForTopLevelFilter;
 
     private State state;
 
-    private OsmTagFilter osmTagFilter;
+    private final OsmTagFilter osmTagFilter;
 
     private GeoBoundingBoxQuery.Builder bboxQueryBuilder;
 
@@ -195,7 +195,7 @@ public class PhotonQueryBuilder {
      * Create an instance of this builder which can then be embellished as needed.
      *
      * @param query    the value for photon query parameter "q"
-     * @param language
+     * @param language the language for the photon query
      * @return An initialized {@link PhotonQueryBuilder photon query builder}.
      */
     public static PhotonQueryBuilder builder(String query, String language, String[] languages, boolean lenient) {
@@ -312,6 +312,6 @@ public class PhotonQueryBuilder {
     }
 
     private enum State {
-        PLAIN, FILTERED, QUERY_ALREADY_BUILT, FINISHED,
+        PLAIN, FILTERED, FINISHED,
     }
 }

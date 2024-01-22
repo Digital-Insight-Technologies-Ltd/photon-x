@@ -1,5 +1,7 @@
 package de.komoot.photon;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,6 +12,7 @@ import java.util.stream.Collectors;
  * The different types correspond to the address parts available in GeocodeJSON. This type also defines
  * the mapping toward Nominatim's address ranks.
  */
+@Getter
 public enum AddressType {
     HOUSE("house"),
     STREET("street"),
@@ -24,10 +27,6 @@ public enum AddressType {
 
     AddressType(String name) {
         this.name = name;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public static List<String> getNames() {

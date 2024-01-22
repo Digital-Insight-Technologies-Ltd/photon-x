@@ -13,7 +13,7 @@ import spark.Request;
  */
 public class LocationParamConverter {
     private static final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
-    private boolean mandatory;
+    private final boolean mandatory;
 
     public LocationParamConverter(boolean mandatory) {
         this.mandatory = mandatory;
@@ -23,16 +23,15 @@ public class LocationParamConverter {
         Point location;
         String lonParam = webRequest.queryParams("lon");
         String latParam = webRequest.queryParams("lat");
-        if (!mandatory && lonParam == null && latParam == null) {
-            return null;
-        }
+
+        if (!mandatory && (lonParam == null || latParam == null)) { return null; }
         
         try {
-            Double lon = Double.valueOf(lonParam);
+            double lon = Double.parseDouble(lonParam);
             if (lon > 180.0 || lon < -180.00) {
                 throw new BadRequestException(400, "invalid search term 'lon', expected number >= -180.0 and <= 180.0");
             }
-            Double lat = Double.valueOf(latParam);
+            double lat = Double.parseDouble(latParam);
             if (lat > 90.0 || lat < -90.00) {
                 throw new BadRequestException(400, "invalid search term 'lat', expected number >= -90.0 and <= 90.0");
             }

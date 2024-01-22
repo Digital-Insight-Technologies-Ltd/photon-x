@@ -8,7 +8,10 @@ import de.komoot.photon.Utils;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Encapsulates the ES index settings for the photon index. Adds functions to

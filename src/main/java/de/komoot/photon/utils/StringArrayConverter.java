@@ -15,7 +15,7 @@ public class StringArrayConverter implements IStringConverter<String[]> {
         }
 
         return Arrays.stream(value.split(","))
-                .map(s -> s.trim())
+                .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .toArray(String[]::new);
     }

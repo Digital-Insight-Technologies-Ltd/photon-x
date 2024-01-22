@@ -23,7 +23,7 @@ public class RequestLanguageResolver {
      * @param webRequest Incoming HTTP request.
      * @return Language to be used in the response.
      * @throws BadRequestException The language in the request parameter is unknown.
-     *
+
      * The function first checks for a 'lang' query parameter. If this is not given, it looks for
      * an Accept-Language header and tries to find a supported language there. If that does not
      * work either, the default language is returned
@@ -55,8 +55,7 @@ public class RequestLanguageResolver {
         try {
             List<Locale.LanguageRange> languages = Locale.LanguageRange.parse(acceptLanguageHeader);
             return Locale.lookupTag(languages, supportedLanguages);
-        } catch (Throwable e) {
-        }
+        } catch (Throwable ignored) { }
 
         return null;
     }

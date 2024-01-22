@@ -66,7 +66,9 @@ public class GeocodeJsonFormatter implements ResultFormatter {
         }
 
         props.put(Constants.PLACE_ID, result.getId());
-        props.put(Constants.PARENT_PLACE_ID, result.get(Constants.PARENT_PLACE_ID).toString());
+
+        Object parentPlaceId = result.get(Constants.PARENT_PLACE_ID);
+        props.put(Constants.PARENT_PLACE_ID, parentPlaceId == null ? null : parentPlaceId.toString());
 
         for (String key : KEYS_LANG_UNSPEC) {
             props.putPOJO(key, result.get(key));

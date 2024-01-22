@@ -17,8 +17,12 @@ public class PhotonRequestFactory {
     private final BoundingBoxParamConverter bboxParamConverter;
     private final LayerParamValidator layerParamValidator;
 
-    private static final HashSet<String> REQUEST_QUERY_PARAMS = new HashSet<>(Arrays.asList("lang", "q", "lon", "lat",
-            "limit", "osm_tag", "location_bias_scale", "bbox", "debug", "zoom", "layer", "cache_partition"));
+    private static final HashSet<String> REQUEST_QUERY_PARAMS = new HashSet<>(
+            Arrays.asList(
+                    "lang", "q", "lon", "lat", "limit", "osm_tag", "location_bias_scale", "bbox", "debug", "zoom",
+                    "layer", "cache_partition"
+            )
+    );
 
     public PhotonRequestFactory(List<String> supportedLanguages, String defaultLanguage) {
         this.languageResolver = new RequestLanguageResolver(supportedLanguages, defaultLanguage);
@@ -28,8 +32,12 @@ public class PhotonRequestFactory {
 
     public PhotonRequest create(Request webRequest) throws BadRequestException {
         for (String queryParam : webRequest.queryParams())
-            if (!REQUEST_QUERY_PARAMS.contains(queryParam))
-                throw new BadRequestException(400, "unknown query parameter '" + queryParam + "'.  Allowed parameters are: " + REQUEST_QUERY_PARAMS);
+            if (!REQUEST_QUERY_PARAMS.contains(queryParam)) {
+                throw new BadRequestException(
+                        400,
+                        "unknown query parameter '" + queryParam + "'.  Allowed parameters are: " + REQUEST_QUERY_PARAMS
+                );
+            }
 
         String query = webRequest.queryParams("q");
         if (query == null) {
@@ -38,11 +46,11 @@ public class PhotonRequestFactory {
 
         PhotonRequest request = new PhotonRequest(query, languageResolver.resolveRequestedLanguage(webRequest));
 
-        request.setLimit(parseInt(webRequest, "limit"));
-        request.setLocationForBias(optionalLocationParamConverter.apply(webRequest));
-        request.setBbox(bboxParamConverter.apply(webRequest));
-        request.setScale(parseDouble(webRequest, "location_bias_scale"));
-        request.setZoom(parseInt(webRequest, "zoom"));
+        request.setLimit(parseInt(webRequest, "limit"))
+                .setLocationForBias(optionalLocationParamConverter.apply(webRequest))
+                .setBbox(bboxParamConverter.apply(webRequest))
+                .setScale(parseDouble(webRequest, "location_bias_scale"))
+                .setZoom(parseInt(webRequest, "zoom"));
 
         if (webRequest.queryParams("debug") != null) {
             request.enableDebug();
