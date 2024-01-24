@@ -12,6 +12,11 @@ import de.komoot.photon.query.PhotonRequest;
 import de.komoot.photon.searcher.PhotonResult;
 import de.komoot.photon.searcher.SearchHandler;
 import de.komoot.photon.logging.PhotonLogger;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,33 +28,64 @@ import java.util.List;
 public class ElasticsearchSearchHandler implements SearchHandler {
     private final ElasticsearchClient client;
     private final String[] supportedLanguages;
+    private final Tracer tracer;
     private boolean lastLenient = false;
 
-    public ElasticsearchSearchHandler(ElasticsearchClient client, String[] languages) {
+    public ElasticsearchSearchHandler(ElasticsearchClient client, String[] languages, OpenTelemetry otel) {
         this.client = client;
         this.supportedLanguages = languages;
+        this.tracer = otel.getTracer(ElasticsearchSearchHandler.class.getName());
+    }
+
+    public ElasticsearchSearchHandler(ElasticsearchClient client, String[] languages) {
+        this(client, languages, OpenTelemetry.noop());
     }
 
     @Override
-    public List<PhotonResult> search(PhotonRequest photonRequest) throws IOException {
-        PhotonQueryBuilder queryBuilder = buildQuery(photonRequest, false);
-
-        // for the case of deduplication we need a bit more results, #300
-        int limit = photonRequest.getLimit();
-        int extLimit = limit > 1 ? (int) Math.round(photonRequest.getLimit() * 1.5) : 1;
-
-        long queryStartTime = System.currentTimeMillis();
-
-        SearchResponse<ObjectNode> results = sendQuery(queryBuilder.buildQuery(), extLimit);
-
-        if (results.hits().hits().isEmpty()) {
-            results = sendQuery(buildQuery(photonRequest, true).buildQuery(), extLimit);
-            PhotonLogger.logger.debug("No hits for first query - sending lenient request");
+    public List<PhotonResult> search(PhotonRequest photonRequest, Span parentSpan) throws IOException {
+        Span buildQuerySpan = tracer.spanBuilder("buildQuery")
+                .setParent(Context.current().with(parentSpan))
+                .startSpan();
+        PhotonQueryBuilder queryBuilder;
+        int limit, extLimit;
+        try (Scope scope = buildQuerySpan.makeCurrent()){
+            queryBuilder = buildQuery(photonRequest, false);
+            // for the case of deduplication we need a bit more results, #300
+            limit = photonRequest.getLimit();
+            extLimit = limit > 1 ? (int) Math.round(photonRequest.getLimit() * 1.5) : 1;
+        } catch (Exception e) {
+            buildQuerySpan.recordException(e);
+            throw e;
+        } finally {
+            buildQuerySpan.end();
         }
 
-        long queryFinishTime = System.currentTimeMillis();
+        Span sendQuerySpan = tracer.spanBuilder("sendQuery")
+                .setParent(Context.current().with(parentSpan))
+                .startSpan();
+        SearchResponse<ObjectNode> results;
+        try (Scope scope = sendQuerySpan.makeCurrent()){
+            results = sendQuery(queryBuilder.buildQuery(), extLimit);
+        } catch (Exception e) {
+            sendQuerySpan.recordException(e);
+            throw e;
+        } finally {
+            sendQuerySpan.end();
+        }
 
-        PhotonLogger.logger.debug(String.format("Elasticsearch query took %s ms", (queryFinishTime - queryStartTime)));
+        if (results.hits().hits().isEmpty()) {
+            Span sendLenientQuerySpan = tracer.spanBuilder("sendLenientQuery")
+                    .setParent(Context.current().with(parentSpan))
+                    .startSpan();
+            try (Scope scope = sendLenientQuerySpan.makeCurrent()){
+                results = sendQuery(buildQuery(photonRequest, true).buildQuery(), extLimit);
+            } catch (Exception e) {
+                sendLenientQuerySpan.recordException(e);
+                throw e;
+            } finally {
+                sendLenientQuerySpan.end();
+            }
+        }
 
         List<PhotonResult> ret = new ArrayList<>();
 

@@ -1,68 +1,39 @@
 package de.komoot.photon;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.ParameterException;
 import de.komoot.photon.elasticsearch.ElasticsearchServer;
-import de.komoot.photon.logging.PhotonLogger;
 
-import co.elastic.apm.attach.ElasticApmAttacher;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 
 import static spark.Spark.*;
 
 public class App {
-    public static void main(String[] rawArgs) throws Exception {
-        ElasticApmAttacher.attach();
+    private final static String serverUrl = System.getenv("ELASTIC_CLUSTER_SERVER_URL");
+    private final static String apiKey = System.getenv("ELASTIC_CLUSTER_API_KEY");
+    private final static String defaultLanguage = System.getenv("PHOTON_DEFAULT_LANGUAGE");
+    private final static String[] languages = new String[]{"en", "de", "fr", "it"};
+    private final static OpenTelemetry otel = AutoConfiguredOpenTelemetrySdk.initialize().getOpenTelemetrySdk();
 
-        CommandLineArgs args = parseCommandLine(rawArgs);
-        ElasticsearchServer esServer = new ElasticsearchServer(args.getServerUrl())
-                .apiKey(args.getApiKey())
+    public static void main(String[] rawArgs) throws Exception {
+        if (serverUrl == null) {
+            throw new RuntimeException("Required environment variable: ELASTIC_CLUSTER_SERVER_URL");
+        }
+
+        if (apiKey == null) {
+            throw new RuntimeException("Required environment variable: ELASTIC_CLUSTER_API_KEY");
+        }
+
+        ElasticsearchServer server = new ElasticsearchServer(serverUrl)
+                .apiKey(apiKey)
                 .start()
                 .waitForReady();
 
-        startApi(args, esServer);
-    }
-
-
-    private static CommandLineArgs parseCommandLine(String[] rawArgs) {
-        CommandLineArgs args = new CommandLineArgs();
-        final JCommander jCommander = new JCommander(args);
-        try {
-            jCommander.parse(rawArgs);
-
-            if (args.getServerUrl() == null) { throw new ParameterException("serverUrl is a required parameter"); }
-            if (args.getApiKey() == null) { throw new ParameterException("apiKey is a required parameter"); }
-
-        } catch (ParameterException e) {
-            PhotonLogger.logger.error("could not start photon: " + e.getMessage());
-            jCommander.usage();
-            System.exit(1);
-        }
-
-        // show help
-        if (args.isUsage()) {
-            jCommander.usage();
-            System.exit(1);
-        }
-
-        return args;
-    }
-
-    /**
-     * Start API server to accept search requests via http.
-     */
-    private static void startApi(CommandLineArgs args, ElasticsearchServer server){
-        port(args.getListenPort());
-        ipAddress(args.getListenIp());
-
+        port(2322);
+        ipAddress("0.0.0.0");
         before((request, response) -> response.type("application/json; charset=UTF-8"));
-
-        // setup search API
-        String[] languages = new String[]{"en", "de", "fr", "it"};
-        get("api", new SearchRequestHandler("api", server.createSearchHandler(languages), languages, args.getDefaultLanguage()));
-        // get("api/", new SearchRequestHandler("api/", server.createSearchHandler(languages), languages, args.getDefaultLanguage()));
-        get("reverse", new ReverseSearchRequestHandler("reverse", server.createReverseHandler(), languages, args.getDefaultLanguage()));
-        // get("reverse/", new ReverseSearchRequestHandler("reverse/", server.createReverseHandler(), languages, args.getDefaultLanguage()));
-        get("lookup", new LookupSearchRequestHandler("lookup", server.createLookupHandler(), languages, args.getDefaultLanguage()));
-        // get("lookup/", new LookupSearchRequestHandler("lookup/", server.createLookupHandler(), languages, args.getDefaultLanguage()));
+        get("api", new SearchRequestHandler("api", server.createSearchHandler(languages), languages, defaultLanguage, otel));
+        get("reverse", new ReverseSearchRequestHandler("reverse", server.createReverseHandler(), languages, defaultLanguage, otel));
+        get("lookup", new LookupSearchRequestHandler("lookup", server.createLookupHandler(), languages, defaultLanguage, otel));
     }
+
 }

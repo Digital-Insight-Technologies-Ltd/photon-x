@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="DEBUG">
+<Configuration status="INFO">
     <Appenders>
         <Console name="stdout" target="SYSTEM_OUT">
-            <EcsLayout serviceName="photon" />
+            <EcsLayout serviceName="Photon"/>
         </Console>
     </Appenders>
     <Loggers>

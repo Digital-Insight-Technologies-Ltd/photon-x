@@ -5,6 +5,7 @@ import co.elastic.clients.elasticsearch._types.HealthStatus;
 import co.elastic.clients.json.JsonpMapper;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.instrumentation.OpenTelemetryForElasticsearch;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 
 import de.komoot.photon.searcher.LookupHandler;
@@ -12,6 +13,7 @@ import de.komoot.photon.searcher.ReverseHandler;
 import de.komoot.photon.searcher.SearchHandler;
 import de.komoot.photon.logging.PhotonLogger;
 
+import io.opentelemetry.api.OpenTelemetry;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.message.BasicHeader;
@@ -26,13 +28,13 @@ import java.util.List;
 public class ElasticsearchServer {
     private final List<Header> headers = new ArrayList<>(){};
     private final RestClientBuilder restClientBuilder;
-    public final String serverUrl;
     private final JsonpMapper jsonpMapper = new JacksonJsonpMapper();
     public ElasticsearchClient esClient;
+    private OpenTelemetry otel;
 
     public ElasticsearchServer(String serverUrl) {
-        this.serverUrl = serverUrl;
         this.restClientBuilder = RestClient.builder(HttpHost.create(serverUrl));
+        this.otel = OpenTelemetry.noop();
     }
 
     public ElasticsearchServer apiKey(String apiKey) {
@@ -40,14 +42,19 @@ public class ElasticsearchServer {
         return this;
     }
 
+    public ElasticsearchServer withOtel(OpenTelemetry otel) {
+        this.otel = otel;
+        return this;
+    }
+
     public ElasticsearchServer start() {
         if (!headers.isEmpty()) { restClientBuilder.setDefaultHeaders(headers.toArray(Header[]::new)); }
 
-        ElasticsearchTransport transport = new RestClientTransport(restClientBuilder.build(), jsonpMapper);
+        OpenTelemetryForElasticsearch instrumentation = new OpenTelemetryForElasticsearch(otel, false);
+
+        ElasticsearchTransport transport = new RestClientTransport(restClientBuilder.build(), jsonpMapper, null, instrumentation);
 
         esClient = new ElasticsearchClient(transport);
-
-        PhotonLogger.logger.info("Started elastic search client connected to " + serverUrl);
 
         return this;
     }

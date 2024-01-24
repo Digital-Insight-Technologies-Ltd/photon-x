@@ -6,6 +6,10 @@ import de.komoot.photon.query.ReverseRequestFactory;
 import de.komoot.photon.searcher.GeocodeJsonFormatter;
 import de.komoot.photon.searcher.PhotonResult;
 import de.komoot.photon.searcher.ReverseHandler;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.context.Scope;
 import org.json.JSONObject;
 import spark.Request;
 import spark.Response;
@@ -23,37 +27,71 @@ import static spark.Spark.halt;
 public class ReverseSearchRequestHandler extends RouteImpl {
     private final ReverseRequestFactory reverseRequestFactory;
     private final ReverseHandler requestHandler;
+    private final Tracer tracer;
 
-    ReverseSearchRequestHandler(String path, ReverseHandler dbHandler, String[] languages, String defaultLanguage) {
+    ReverseSearchRequestHandler(String path, ReverseHandler handler, String[] languages, String defaultLanguage, OpenTelemetry otel) {
         super(path);
-        List<String> supportedLanguages = Arrays.asList(languages);
-        this.reverseRequestFactory = new ReverseRequestFactory(supportedLanguages, defaultLanguage);
-        this.requestHandler = dbHandler;
+        this.reverseRequestFactory = new ReverseRequestFactory(Arrays.asList(languages), defaultLanguage);
+        this.requestHandler = handler;
+        this.tracer = otel.getTracer(ReverseSearchRequestHandler.class.getName());
+    }
+
+    ReverseSearchRequestHandler(String path, ReverseHandler handler, String[] languages, String defaultLanguage) {
+        this(path, handler, languages, defaultLanguage, OpenTelemetry.noop());
     }
 
     @Override
     public String handle(Request request, Response response) throws IOException {
+        Span validateRequestSpan = tracer.spanBuilder("validateRequest").startSpan();
+
+        // We need to initialize this as the compiler does not recognise that `halt` will exit the method
         ReverseRequest photonRequest = null;
-        try {
+        try (Scope scope = validateRequestSpan.makeCurrent()){
             photonRequest = reverseRequestFactory.create(request);
         } catch (BadRequestException e) {
+            validateRequestSpan.recordException(e);
             JSONObject json = new JSONObject();
             json.put("message", e.getMessage());
             halt(e.getHttpStatus(), json.toString());
+        } catch (Exception e) {
+            validateRequestSpan.recordException(e);
+            throw e;
+        } finally {
+            validateRequestSpan.end();
         }
 
-        List<PhotonResult> results = requestHandler.reverse(photonRequest);
-
-        // Restrict to the requested limit.
-        if (results.size() > photonRequest.getLimit()) {
-            results = results.subList(0, photonRequest.getLimit());
+        Span querySpan = tracer.spanBuilder("query").startSpan();
+        List<PhotonResult> results;
+        try (Scope scope = querySpan.makeCurrent()){
+            results = requestHandler.reverse(photonRequest, querySpan);
+        } catch (Exception e) {
+            querySpan.recordException(e);
+            throw e;
+        } finally {
+            querySpan.end();
         }
 
-        String debugInfo = null;
-        if (photonRequest.getDebug()) {
-            debugInfo = requestHandler.dumpQuery(photonRequest);
+        Span postProcessSpan = tracer.spanBuilder("postProcess").startSpan();
+        String output;
+        try (Scope scope = postProcessSpan.makeCurrent()){
+            // Restrict to the requested limit.
+            if (results.size() > photonRequest.getLimit()) {
+                results = results.subList(0, photonRequest.getLimit());
+            }
+
+            String debugInfo = null;
+            if (photonRequest.getDebug()) {
+                debugInfo = requestHandler.dumpQuery(photonRequest);
+            }
+
+            output = new GeocodeJsonFormatter(false, photonRequest.getLanguage()).convert(results, debugInfo);
+        } catch (Exception e) {
+            postProcessSpan.recordException(e);
+            throw e;
+        } finally {
+            postProcessSpan.end();
         }
 
-        return new GeocodeJsonFormatter(false, photonRequest.getLanguage()).convert(results, debugInfo);
+        return output;
     }
 }
