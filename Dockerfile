@@ -4,7 +4,8 @@ WORKDIR /app
 COPY src ./src
 COPY pom.xml .
 
-RUN mvn package
+RUN mvn clean package
+RUN apt update -y && apt upgrade -y && apt install -y curl
 RUN curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
 
 
