@@ -23,7 +23,7 @@ public class App {
             throw new RuntimeException("Required environment variable: ELASTIC_CLUSTER_API_KEY");
         }
 
-        ElasticsearchServer server = new ElasticsearchServer(serverUrl)
+        ElasticsearchServer server = new ElasticsearchServer(serverUrl, otel)
                 .apiKey(apiKey)
                 .start()
                 .waitForReady();
@@ -34,6 +34,7 @@ public class App {
         get("api", new SearchRequestHandler("api", server.createSearchHandler(languages), languages, defaultLanguage, otel));
         get("reverse", new ReverseSearchRequestHandler("reverse", server.createReverseHandler(), languages, defaultLanguage, otel));
         get("lookup", new LookupSearchRequestHandler("lookup", server.createLookupHandler(), languages, defaultLanguage, otel));
+
     }
 
 }

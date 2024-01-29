@@ -11,7 +11,6 @@ import co.elastic.clients.transport.rest_client.RestClientTransport;
 import de.komoot.photon.searcher.LookupHandler;
 import de.komoot.photon.searcher.ReverseHandler;
 import de.komoot.photon.searcher.SearchHandler;
-import de.komoot.photon.logging.PhotonLogger;
 
 import io.opentelemetry.api.OpenTelemetry;
 import org.apache.http.Header;
@@ -29,21 +28,16 @@ public class ElasticsearchServer {
     private final List<Header> headers = new ArrayList<>(){};
     private final RestClientBuilder restClientBuilder;
     private final JsonpMapper jsonpMapper = new JacksonJsonpMapper();
+    private final OpenTelemetry otel;
     public ElasticsearchClient esClient;
-    private OpenTelemetry otel;
 
-    public ElasticsearchServer(String serverUrl) {
+    public ElasticsearchServer(String serverUrl, OpenTelemetry otel) {
         this.restClientBuilder = RestClient.builder(HttpHost.create(serverUrl));
-        this.otel = OpenTelemetry.noop();
+        this.otel = otel;
     }
 
     public ElasticsearchServer apiKey(String apiKey) {
         this.headers.add(new BasicHeader("Authorization", String.format("ApiKey %s", apiKey)));
-        return this;
-    }
-
-    public ElasticsearchServer withOtel(OpenTelemetry otel) {
-        this.otel = otel;
         return this;
     }
 

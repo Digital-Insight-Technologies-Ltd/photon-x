@@ -11,12 +11,10 @@ import de.komoot.photon.Constants;
 import de.komoot.photon.query.PhotonRequest;
 import de.komoot.photon.searcher.PhotonResult;
 import de.komoot.photon.searcher.SearchHandler;
-import de.komoot.photon.logging.PhotonLogger;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.Scope;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,33 +26,29 @@ import java.util.List;
 public class ElasticsearchSearchHandler implements SearchHandler {
     private final ElasticsearchClient client;
     private final String[] supportedLanguages;
-    private final Tracer tracer;
     private boolean lastLenient = false;
 
-    public ElasticsearchSearchHandler(ElasticsearchClient client, String[] languages, OpenTelemetry otel) {
+    public ElasticsearchSearchHandler(ElasticsearchClient client, String[] languages) {
         this.client = client;
         this.supportedLanguages = languages;
-        this.tracer = otel.getTracer(ElasticsearchSearchHandler.class.getName());
-    }
-
-    public ElasticsearchSearchHandler(ElasticsearchClient client, String[] languages) {
-        this(client, languages, OpenTelemetry.noop());
     }
 
     @Override
-    public List<PhotonResult> search(PhotonRequest photonRequest, Span parentSpan) throws IOException {
+    public List<PhotonResult> search(PhotonRequest photonRequest, Tracer tracer, Span parentSpan) throws IOException {
         Span buildQuerySpan = tracer.spanBuilder("buildQuery")
                 .setParent(Context.current().with(parentSpan))
                 .startSpan();
+
         PhotonQueryBuilder queryBuilder;
         int limit, extLimit;
-        try (Scope scope = buildQuerySpan.makeCurrent()){
+        try {
             queryBuilder = buildQuery(photonRequest, false);
             // for the case of deduplication we need a bit more results, #300
             limit = photonRequest.getLimit();
             extLimit = limit > 1 ? (int) Math.round(photonRequest.getLimit() * 1.5) : 1;
         } catch (Exception e) {
             buildQuerySpan.recordException(e);
+            buildQuerySpan.setStatus(StatusCode.ERROR);
             throw e;
         } finally {
             buildQuerySpan.end();
@@ -64,10 +58,11 @@ public class ElasticsearchSearchHandler implements SearchHandler {
                 .setParent(Context.current().with(parentSpan))
                 .startSpan();
         SearchResponse<ObjectNode> results;
-        try (Scope scope = sendQuerySpan.makeCurrent()){
+        try {
             results = sendQuery(queryBuilder.buildQuery(), extLimit);
         } catch (Exception e) {
             sendQuerySpan.recordException(e);
+            sendQuerySpan.setStatus(StatusCode.ERROR);
             throw e;
         } finally {
             sendQuerySpan.end();
@@ -77,10 +72,11 @@ public class ElasticsearchSearchHandler implements SearchHandler {
             Span sendLenientQuerySpan = tracer.spanBuilder("sendLenientQuery")
                     .setParent(Context.current().with(parentSpan))
                     .startSpan();
-            try (Scope scope = sendLenientQuerySpan.makeCurrent()){
+            try {
                 results = sendQuery(buildQuery(photonRequest, true).buildQuery(), extLimit);
             } catch (Exception e) {
                 sendLenientQuerySpan.recordException(e);
+                sendLenientQuerySpan.setStatus(StatusCode.ERROR);
                 throw e;
             } finally {
                 sendLenientQuerySpan.end();

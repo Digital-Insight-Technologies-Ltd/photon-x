@@ -14,11 +14,10 @@ import de.komoot.photon.Constants;
 import de.komoot.photon.query.ReverseRequest;
 import de.komoot.photon.searcher.PhotonResult;
 import de.komoot.photon.searcher.ReverseHandler;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.Scope;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,27 +28,24 @@ import java.util.List;
  */
 public class ElasticsearchReverseHandler implements ReverseHandler {
     private final ElasticsearchClient client;
-    private final Tracer tracer;
-
-    public ElasticsearchReverseHandler(ElasticsearchClient client, OpenTelemetry otel) {
-        this.client = client;
-        this.tracer = otel.getTracer(ElasticsearchReverseHandler.class.getName());
-    }
 
     public ElasticsearchReverseHandler(ElasticsearchClient client) {
-        this(client, OpenTelemetry.noop());
+        this.client = client;
     }
 
+
     @Override
-    public List<PhotonResult> reverse(ReverseRequest photonRequest, Span parentSpan) throws IOException {
+    public List<PhotonResult> reverse(ReverseRequest photonRequest, Tracer tracer, Span parentSpan) throws IOException {
         Span buildQuerySpan = tracer.spanBuilder("buildQuery")
                 .setParent(Context.current().with(parentSpan))
                 .startSpan();
+
         ReverseQueryBuilder queryBuilder;
-        try (Scope scope = buildQuerySpan.makeCurrent()){
+        try {
             queryBuilder = buildQuery(photonRequest);
         } catch (Exception e) {
             buildQuerySpan.recordException(e);
+            buildQuerySpan.setStatus(StatusCode.ERROR);
             throw e;
         } finally {
             buildQuerySpan.end();
@@ -59,7 +55,7 @@ public class ElasticsearchReverseHandler implements ReverseHandler {
                 .setParent(Context.current().with(parentSpan))
                 .startSpan();
         SearchResponse<ObjectNode> results;
-        try (Scope scope = sendQuerySpan.makeCurrent()){
+        try {
             results = search(
                     queryBuilder.buildQuery(),
                     photonRequest.getLimit(),
@@ -68,6 +64,7 @@ public class ElasticsearchReverseHandler implements ReverseHandler {
             );
         } catch (Exception e) {
             sendQuerySpan.recordException(e);
+            sendQuerySpan.setStatus(StatusCode.ERROR);
             throw e;
         } finally {
             sendQuerySpan.end();

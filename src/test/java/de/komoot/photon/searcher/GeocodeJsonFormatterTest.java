@@ -1,9 +1,11 @@
 package de.komoot.photon.searcher;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
 import de.komoot.photon.Constants;
-import org.json.JSONObject;
-import org.json.JSONArray;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -12,7 +14,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GeocodeJsonFormatterTest {
-
+    private final ObjectMapper objectMapper = new ObjectMapper();
     @Test
     public void testConvertToGeojson() throws JsonProcessingException {
         GeocodeJsonFormatter formatter = new GeocodeJsonFormatter(false, "en");
@@ -21,16 +23,16 @@ public class GeocodeJsonFormatterTest {
         allResults.add(createDummyResult("88888", "Bar Park", "leisure", "park"));
 
         String geojsonString = formatter.convert(allResults, null);
-        JSONObject jsonObj = new JSONObject(geojsonString);
-        assertEquals("FeatureCollection", jsonObj.getString("type"));
-        JSONArray features = jsonObj.getJSONArray("features");
-        assertEquals(2, features.length());
-        for (int i = 0; i < features.length(); i++) {
-            JSONObject feature = features.getJSONObject(i);
-            assertEquals("Feature", feature.getString("type"));
-            assertEquals("Point", feature.getJSONObject("geometry").getString("type"));
-            assertEquals("leisure", feature.getJSONObject("properties").getString(Constants.OSM_KEY));
-            assertEquals("park", feature.getJSONObject("properties").getString(Constants.OSM_VALUE));
+        JsonNode jsonObj = objectMapper.readTree(geojsonString);
+        assertEquals("FeatureCollection", jsonObj.get("type").asText());
+        ArrayNode features = (ArrayNode) jsonObj.get("features");
+        assertEquals(2, features.size());
+        for (int i = 0; i < features.size(); i++) {
+            JsonNode feature = features.get(i);
+            assertEquals("Feature", feature.get("type").asText());
+            assertEquals("Point", feature.get("geometry").get("type").asText());
+            assertEquals("leisure", feature.get("properties").get(Constants.OSM_KEY).asText());
+            assertEquals("park", feature.get("properties").get(Constants.OSM_VALUE).asText());
         }
     }
     

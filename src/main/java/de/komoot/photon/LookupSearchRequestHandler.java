@@ -1,5 +1,6 @@
 package de.komoot.photon;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.komoot.photon.query.BadRequestException;
 import de.komoot.photon.query.LookupRequest;
 import de.komoot.photon.query.LookupRequestFactory;
@@ -7,10 +8,11 @@ import de.komoot.photon.searcher.GeocodeJsonFormatter;
 import de.komoot.photon.searcher.PhotonResult;
 import de.komoot.photon.searcher.LookupHandler;
 import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.context.Scope;
-import org.json.JSONObject;
+
+import io.opentelemetry.context.Context;
+import io.opentelemetry.semconv.SemanticAttributes;
 import spark.Request;
 import spark.Response;
 import spark.RouteImpl;
@@ -25,13 +27,14 @@ import static spark.Spark.halt;
 public class LookupSearchRequestHandler extends RouteImpl {
     private final LookupRequestFactory photonRequestFactory;
     private final LookupHandler requestHandler;
-    private final Tracer tracer;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final OpenTelemetry otel;
 
     LookupSearchRequestHandler(String path, LookupHandler handler, String[] languages, String defaultLanguage, OpenTelemetry otel) {
         super(path);
         this.photonRequestFactory = new LookupRequestFactory(Arrays.asList(languages), defaultLanguage);
         this.requestHandler = handler;
-        this.tracer = otel.getTracer(LookupSearchRequestHandler.class.getName());
+        this.otel = otel;
     }
 
     LookupSearchRequestHandler(String path, LookupHandler handler, String[] languages, String defaultLanguage) {
@@ -39,47 +42,65 @@ public class LookupSearchRequestHandler extends RouteImpl {
     }
 
     public String handle(Request request, Response response) throws IOException {
-        Span validateRequestSpan = tracer.spanBuilder("validateRequest").startSpan();
+        var tracer = otel.getTracer("lookupHandler");
+
+        Span mainSpan = tracer.spanBuilder("lookup")
+                .setAttribute(SemanticAttributes.HTTP_ROUTE, "lookup")
+                .setAttribute(SemanticAttributes.HTTP_REQUEST_METHOD, "GET")
+                .startSpan();
+
+        Span validateRequestSpan = tracer.spanBuilder("validateRequest")
+                .setParent(Context.current().with(mainSpan))
+                .startSpan();
+
         // We need to initialize this as the compiler does not recognise that `halt` will exit the method
         LookupRequest lookupRequest = null;
-        try (Scope scope = validateRequestSpan.makeCurrent()){
+        try {
             lookupRequest = photonRequestFactory.create(request);
         } catch (BadRequestException e) {
             validateRequestSpan.recordException(e);
-            JSONObject json = new JSONObject();
-            json.put("message", e.getMessage());
-            halt(e.getHttpStatus(), json.toString());
+            halt(e.getHttpStatus(), objectMapper.createObjectNode().put("message", e.getMessage()).toString());
         } catch (Exception e) {
             validateRequestSpan.recordException(e);
+            validateRequestSpan.setStatus(StatusCode.ERROR);
             throw e;
         } finally {
             validateRequestSpan.end();
         }
 
-        Span querySpan = tracer.spanBuilder("query").startSpan();
+        Span querySpan = tracer.spanBuilder("query")
+                .setParent(Context.current().with(mainSpan))
+                .startSpan();
+
         PhotonResult result;
-        try (Scope scope = querySpan.makeCurrent()){
-            result = requestHandler.lookup(lookupRequest.placeId(), querySpan);
+        try {
+            result = requestHandler.lookup(lookupRequest.placeId(), tracer, querySpan);
         } catch (Exception e) {
             querySpan.recordException(e);
+            querySpan.setStatus(StatusCode.ERROR);
             throw e;
         } finally {
             querySpan.end();
         }
 
-        Span postProcessSpan = tracer.spanBuilder("postProcess").startSpan();
+        Span postProcessSpan = tracer.spanBuilder("postProcess")
+                .setParent(Context.current().with(mainSpan))
+                .startSpan();
+
         String output;
-        try (Scope scope = postProcessSpan.makeCurrent()){
+        try {
             List<PhotonResult> results = new ArrayList<>();
             results.add(result);
             output = new GeocodeJsonFormatter(false, lookupRequest.language()).convert(results, null);
         } catch (Exception e) {
             postProcessSpan.recordException(e);
+            postProcessSpan.setStatus(StatusCode.ERROR);
             throw e;
         } finally {
             postProcessSpan.end();
         }
 
+        mainSpan.end();
         return output;
     }
 }
