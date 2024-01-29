@@ -44,11 +44,17 @@ public class SearchRequestHandler extends RouteImpl {
     @Override
     public String handle(Request request, Response response) throws IOException {
         var tracer = otel.getTracer("PhotonApi");
-        Span mainSpan = tracer.spanBuilder("search")
+
+        var enquiryId = request.headers("Xapien-Enquiry-Id");
+        var deploymentStage = request.headers("Xapien-Deployment-Stage");
+
+        Span mainSpan = tracer.spanBuilder("Search")
                 .setAttribute(SemanticAttributes.HTTP_ROUTE, "/api")
                 .setAttribute(SemanticAttributes.HTTP_REQUEST_METHOD, "GET")
                 .setAttribute(SemanticAttributes.URL_FULL, request.url())
                 .setAttribute(SemanticAttributes.URL_QUERY, request.queryString())
+                .setAttribute("enquiry_id", enquiryId)
+                .setAttribute("deployment_stage", deploymentStage)
                 .startSpan();
 
         String output;

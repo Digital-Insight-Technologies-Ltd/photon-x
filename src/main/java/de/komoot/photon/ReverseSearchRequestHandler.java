@@ -44,11 +44,16 @@ public class ReverseSearchRequestHandler extends RouteImpl {
     public String handle(Request request, Response response) throws IOException {
         var tracer = otel.getTracer("PhotonApi");
 
-        Span mainSpan = tracer.spanBuilder("reverse")
+        var enquiryId = request.headers("Xapien-Enquiry-Id");
+        var deploymentStage = request.headers("Xapien-Deployment-Stage");
+
+        Span mainSpan = tracer.spanBuilder("Reverse")
                 .setAttribute(SemanticAttributes.HTTP_ROUTE, "/reverse")
                 .setAttribute(SemanticAttributes.HTTP_REQUEST_METHOD, "GET")
                 .setAttribute(SemanticAttributes.URL_FULL, request.url())
                 .setAttribute(SemanticAttributes.URL_QUERY, request.queryString())
+                .setAttribute("enquiry_id", enquiryId)
+                .setAttribute("deployment_stage", deploymentStage)
                 .startSpan();
 
         String output;
