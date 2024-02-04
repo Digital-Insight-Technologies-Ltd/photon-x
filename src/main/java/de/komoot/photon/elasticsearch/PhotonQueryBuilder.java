@@ -1,17 +1,7 @@
 package de.komoot.photon.elasticsearch;
 
 import co.elastic.clients.elasticsearch._types.FieldValue;
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
-import co.elastic.clients.elasticsearch._types.query_dsl.FunctionScore;
-import co.elastic.clients.elasticsearch._types.query_dsl.FunctionScoreMode;
-import co.elastic.clients.elasticsearch._types.query_dsl.FunctionScoreQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.GeoBoundingBoxQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.MultiMatchQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-import co.elastic.clients.elasticsearch._types.query_dsl.TermsQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
+import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.json.JsonData;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Point;
@@ -304,6 +294,15 @@ public class PhotonQueryBuilder {
 
         if (layerQueryBuilder != null)
             queryBuilderForTopLevelFilter.filter(layerQueryBuilder.build()._toQuery());
+
+        // TODO decide if keep or not depending on result of cor-787
+        queryBuilderForTopLevelFilter.mustNot(
+                new TermQuery.Builder()
+                        .field("type")
+                        .value("house")
+                        .build()
+                        ._toQuery()
+        );
 
         finalQueryBuilder.filter(queryBuilderForTopLevelFilter.build()._toQuery());
         state = State.FINISHED;
