@@ -116,6 +116,7 @@ public class SearchRequestHandler extends RouteImpl {
             } finally {
                 postProcessSpan.end();
             }
+            mainSpan.setStatus(StatusCode.OK);
         } catch (Exception e) {
             mainSpan.recordException(e);
             mainSpan.setStatus(StatusCode.ERROR);
