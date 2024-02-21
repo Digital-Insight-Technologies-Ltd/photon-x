@@ -10,6 +10,7 @@ import de.komoot.photon.searcher.SearchHandler;
 import de.komoot.photon.searcher.StreetDupesRemover;
 
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Span;
 
@@ -49,13 +50,21 @@ public class SearchRequestHandler extends RouteImpl {
         var deploymentStage = request.headers("Xapien-Deployment-Stage");
 
         Span mainSpan = tracer.spanBuilder("Search")
-                .setAttribute(SemanticAttributes.HTTP_ROUTE, "/api")
-                .setAttribute(SemanticAttributes.HTTP_REQUEST_METHOD, "GET")
-                .setAttribute(SemanticAttributes.URL_FULL, request.url())
-                .setAttribute(SemanticAttributes.URL_QUERY, request.queryString())
-                .setAttribute("enquiry_id", enquiryId)
-                .setAttribute("deployment_stage", deploymentStage)
+                .setSpanKind(SpanKind.SERVER)
                 .startSpan();
+
+        mainSpan.setAttribute("client.address", request.ip())
+                .setAttribute("http.route", "/api")
+                .setAttribute("http.request.method", "GET")
+                .setAttribute("server.address", request.host())
+                .setAttribute("server.port", request.port())
+                .setAttribute("url.path", "/api")
+                .setAttribute("url.query", request.queryString())
+                .setAttribute("url.full", request.url())
+                .setAttribute("url.scheme", request.scheme())
+                .setAttribute("user_agent.original", request.userAgent())
+                .setAttribute("labels.enquiry_id", enquiryId)
+                .setAttribute("deployment.environment", deploymentStage);
 
         String output;
         try (Scope scope = mainSpan.makeCurrent()){
@@ -117,9 +126,11 @@ public class SearchRequestHandler extends RouteImpl {
                 postProcessSpan.end();
             }
             mainSpan.setStatus(StatusCode.OK);
+            mainSpan.setAttribute("http.response.status_code", 200);
         } catch (Exception e) {
             mainSpan.recordException(e);
             mainSpan.setStatus(StatusCode.ERROR);
+            mainSpan.setAttribute("http.response.status_code", 500);
             throw e;
         } finally {
             mainSpan.end();
