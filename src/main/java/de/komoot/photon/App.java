@@ -34,7 +34,7 @@ public class App {
         get("api", new SearchRequestHandler("api", server.createSearchHandler(languages), languages, defaultLanguage, otel));
         get("reverse", new ReverseSearchRequestHandler("reverse", server.createReverseHandler(), languages, defaultLanguage, otel));
         get("lookup", new LookupSearchRequestHandler("lookup", server.createLookupHandler(), languages, defaultLanguage, otel));
-
+        get("health", new HealthCheckHandler("health", server.createHealthHandler(), otel));
     }
 
 }

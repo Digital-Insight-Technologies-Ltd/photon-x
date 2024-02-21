@@ -8,6 +8,7 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.instrumentation.OpenTelemetryForElasticsearch;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 
+import de.komoot.photon.searcher.HealthHandler;
 import de.komoot.photon.searcher.LookupHandler;
 import de.komoot.photon.searcher.ReverseHandler;
 import de.komoot.photon.searcher.SearchHandler;
@@ -69,4 +70,6 @@ public class ElasticsearchServer {
     public LookupHandler createLookupHandler() {
         return new ElasticsearchLookupHandler(esClient);
     }
+
+    public HealthHandler createHealthHandler() { return new ElasticsearchHealthHandler(esClient); }
 }
