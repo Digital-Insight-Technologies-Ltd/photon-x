@@ -53,15 +53,8 @@ public class SearchRequestHandler extends RouteImpl {
                 .setSpanKind(SpanKind.SERVER)
                 .startSpan();
 
-        mainSpan.setAttribute("client.address", request.ip())
-                .setAttribute("http.route", "/api")
-                .setAttribute("http.request.method", "GET")
-                .setAttribute("server.address", request.host())
-                .setAttribute("server.port", request.port())
-                .setAttribute("url.path", "/api")
-                .setAttribute("url.query", request.queryString())
-                .setAttribute("url.full", request.url())
-                .setAttribute("url.scheme", request.scheme())
+        mainSpan.setAttribute("http.request.method", "GET")
+                .setAttribute("url.full", request.uri())
                 .setAttribute("user_agent.original", request.userAgent())
                 .setAttribute("labels.enquiry_id", enquiryId)
                 .setAttribute("deployment.environment", deploymentStage);
