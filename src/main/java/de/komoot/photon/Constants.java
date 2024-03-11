@@ -6,7 +6,7 @@ package de.komoot.photon;
  * @author christoph
  */
 public class Constants {
-    public static final String PHOTON_INDEX = "photon_split";
+    public static final String PHOTON_INDEX = "photon";
     public static final String POSTCODE = "postcode";
     public static final String HOUSENUMBER = "housenumber";
     public static final String NAME = "name";
