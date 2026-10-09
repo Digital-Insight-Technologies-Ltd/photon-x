@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Decommissioned - V3 sunset.** The Photon API fork used by PhotonService was shut down on 2026-10-08 as part of the V3 sunset ([PLA-1851](https://linear.app/xapien/issue/PLA-1851)). All of its infrastructure in every environment has been destroyed and this repository is archived. It is kept read-only for reference only; nothing here is deployed or maintained.
+
 # photon
 
 [![Continuous Integration](https://github.com/komoot/photon/workflows/Continuous%20Integration/badge.svg)](https://github.com/komoot/photon/actions)
